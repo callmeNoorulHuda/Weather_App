@@ -81,10 +81,10 @@ class _HomeState extends State<Home> {
                 SizedBox(height: 25),
                 TextField(
                   controller: _controller,
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     hintText: "Enter city name",
-                    hintStyle: TextStyle(color: Colors.white70),
+                    hintStyle: TextStyle(color: Colors.black),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(

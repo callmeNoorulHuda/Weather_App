@@ -21,7 +21,7 @@ class Weather {
     return Weather(
       cityName: json['name'],
       temperature: json['main']['temp'] - 273.15, // Convert Kelvin to Celsius
-      description: json['weather']['description'],
+      description: json['weather'][0]['description'],
       humidity: json['main']['humidity'],
       windSpeed: json['wind']['speed'],
       sunrise: json['sys']['sunrise'],

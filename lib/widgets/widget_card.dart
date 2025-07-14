@@ -30,8 +30,10 @@ class WeatherCard extends StatelessWidget {
                 weather.description.contains("rain")
                     ? "assets/rain.json"
                     : weather.description.contains("clear")
-                    ? "assets/sun.json"
-                    : "assets/cloud.json",
+                    ? "assets/sunny.json"
+                    : weather.description.contains("cloud")
+                    ? "assets/cloudy.json"
+                    : "assets/snowfall.json",
                 width: 150,
                 height: 150,
               ),
@@ -73,12 +75,8 @@ class WeatherCard extends StatelessWidget {
                     children: [
                       Icon(Icons.wb_sunny_outlined, color: Colors.yellow),
                       Text(
-                        "${weather.sunrise}",
+                        "${formatTime(weather.sunrise)}",
                         style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Text(
-                        formatTime(weather.sunrise),
-                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
@@ -89,12 +87,8 @@ class WeatherCard extends StatelessWidget {
                         color: Color(0xFF0B3688),
                       ),
                       Text(
-                        "${weather.sunrise}",
+                        "${formatTime(weather.sunset)}",
                         style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      Text(
-                        formatTime(weather.sunset),
-                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
