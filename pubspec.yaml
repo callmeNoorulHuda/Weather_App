@@ -17,7 +17,11 @@ dependencies:
   lottie: ^3.3.1
   intl: ^0.20.2
   flutter_dotenv: ^5.2.1
-  weather_animation: ^1.1.2
+  flutter_dash: ^1.0.0
+  geocoding: ^4.0.0
+  geolocator: ^14.0.2
+  searchfield: ^1.3.2
+
 
 
 
@@ -25,7 +29,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
 
@@ -33,5 +38,10 @@ flutter:
 
 
   assets:
+    - assets/background.json
     - assets/
     - .env
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/weather-app.png"

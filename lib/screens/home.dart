@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:weather_app/models/weather_model.dart';
 import 'package:weather_app/services/weather_services.dart';
 
 import '../widgets/widget_card.dart';
+import 'location.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final String? cityName;
+  final String? countryName;
+  const Home({super.key, required this.cityName, this.countryName});
 
   @override
   State<Home> createState() => _HomeState();
@@ -13,18 +17,23 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final WeatherServices _weatherServices = WeatherServices();
-  final TextEditingController _controller = TextEditingController();
 
   bool _isLoading = false;
 
   Weather? _weather;
 
   void _getWeather() async {
+    if (widget.cityName == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("No city entered")));
+      return;
+    }
     setState(() {
       _isLoading = true;
     });
     try {
-      final weather = await _weatherServices.fetchWeather(_controller.text);
+      final weather = await _weatherServices.fetchWeather(widget.cityName!);
       setState(() {
         _weather = weather;
         _isLoading = false;
@@ -37,86 +46,297 @@ class _HomeState extends State<Home> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    _getWeather();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient:
-              _weather != null &&
-                  _weather!.description.toLowerCase().contains("rain")
-              ? LinearGradient(
-                  colors: [Colors.blue, Colors.grey],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                )
-              : _weather != null &&
-                    _weather!.description.toLowerCase().contains("clear")
-              ? LinearGradient(
-                  colors: [Colors.orangeAccent, Colors.blueAccent],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                )
-              : LinearGradient(
-                  colors: [Colors.grey, Colors.lightBlueAccent],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                SizedBox(height: 25),
-                Text(
-                  "Weather App",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator(color: Colors.blue)),
+      );
+    }
+
+    if (_weather == null) {
+      return Scaffold(
+        body: Center(child: Text("City not found or error fetching data.")),
+      );
+    }
+    bool set = false;
+    DateTime utcNow = DateTime.now().toUtc();
+    DateTime cityTime = utcNow.add(Duration(seconds: _weather!.timezoneOffset));
+
+    String day = DateFormat('EEEE').format(cityTime);
+    String date = DateFormat('d').format(cityTime);
+    String time = DateFormat('hh:mm a').format(cityTime);
+    if (widget.cityName == null) {
+      return Scaffold(
+        body: Center(child: Text("City not found. Please enter a city.")),
+      );
+    } else {
+      return Scaffold(
+        body: Container(
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: _weather != null
+                ? getGradientBasedOnTime(_weather!)
+                : LinearGradient(
+                    colors: [Colors.blue, Colors.white],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
-                ),
-                SizedBox(height: 25),
-                TextField(
-                  controller: _controller,
-                  style: TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    hintText: "Enter city name",
-                    hintStyle: TextStyle(color: Colors.black),
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _getWeather,
-                  child: Text("Get Weather", style: TextStyle(fontSize: 18)),
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    backgroundColor: Colors.blueGrey,
-                    foregroundColor: Colors.blueAccent,
-                  ),
-                ),
-                if (_isLoading)
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  SizedBox(height: 25),
                   Padding(
-                    padding: EdgeInsets.all(20),
-                    child: CircularProgressIndicator(color: Colors.white),
+                    padding: const EdgeInsets.only(top: 20, left: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "${widget.cityName?.replaceFirst(" ", "\n")}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineLarge
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    set = true;
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            Location(set: set),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icon(
+                                    Icons.north_east_outlined,
+                                    size: 30,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (widget.countryName != null)
+                              Text(
+                                "${widget.countryName}",
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                              ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  "$day",
+                                  style: Theme.of(context).textTheme.titleLarge
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 5),
+                                  child: Text(
+                                    "$date",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              "$time",
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                if (_weather != null) WeatherCard(weather: _weather!),
-              ],
+                  SizedBox(height: 25),
+
+                  if (_isLoading)
+                    Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  if (_weather != null) WeatherCard(weather: _weather!),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
+  }
+
+  LinearGradient getGradientBasedOnTime(Weather weather) {
+    DateTime cityTime = getCityTime();
+
+    int hour = cityTime.hour;
+
+    if (hour >= 5 && hour < 11) {
+      // Morning
+      if (weather.description.toLowerCase().contains("overcast clouds")) {
+        return LinearGradient(
+          colors: [Colors.grey, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("rain")) {
+        return LinearGradient(
+          colors: [Colors.blueGrey, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("thunderstorm")) {
+        return LinearGradient(
+          colors: [Color(0x185E5B5B), Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("snow")) {
+        return LinearGradient(
+          colors: [Color(0x7EDDD8D8), Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("fog")) {
+        return LinearGradient(
+          colors: [Color(0xBD918F8F), Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else {
+        return LinearGradient(
+          colors: [Colors.lightBlueAccent, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      }
+    } else if (hour >= 11 && hour < 17) {
+      // Morning
+      if (weather.description.toLowerCase().contains("overcast clouds")) {
+        return LinearGradient(
+          colors: [Colors.grey, Color(0xCDE8EDEF)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("rain")) {
+        return LinearGradient(
+          colors: [Colors.blueGrey, Color(0xCDE8EDEF)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("thunderstorm")) {
+        return LinearGradient(
+          colors: [Color(0x185E5B5B), Color(0xCDE8EDEF)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("snow")) {
+        return LinearGradient(
+          colors: [Color(0x7EDDD8D8), Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("fog")) {
+        return LinearGradient(
+          colors: [Color(0xBD918F8F), Color(0xE0F4F5F6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else {
+        return LinearGradient(
+          colors: [Colors.orangeAccent, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      }
+    }
+    // Day
+    else {
+      // Morning
+      if (weather.description.toLowerCase().contains("overcast clouds")) {
+        return LinearGradient(
+          colors: [Color(0xBD012040), Color(0x98DDE6E6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("rain")) {
+        return LinearGradient(
+          colors: [Color(0xFF021437), Color(0x98DDE6E6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("thunderstorm")) {
+        return LinearGradient(
+          colors: [Color(0x185E5B5B), Color(0x98DDE6E6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("snow")) {
+        return LinearGradient(
+          colors: [Color(0x7EDDD8D8), Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else if (weather.description.toLowerCase().contains("fog")) {
+        return LinearGradient(
+          colors: [Color(0xBD918F8F), Color(0xC7DDE6E6)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      } else {
+        return LinearGradient(
+          colors: [Colors.black, Colors.white],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      }
+    }
+  }
+
+  DateTime getCityTime() {
+    // Get current UTC time
+    final utcNow = DateTime.now().toUtc();
+
+    // Add timezone offset of city to get its local time
+    final cityTime = utcNow.add(Duration(seconds: _weather!.timezoneOffset));
+
+    return cityTime;
   }
 }
