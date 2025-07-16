@@ -46,7 +46,7 @@ This app fetches and displays real-time weather data. Users can:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/your-repo.git
+   git clone https://github.com/callmeNoorulHuda/Weather_App.git
    ```
 
 2. **Navigate to the project directory**
