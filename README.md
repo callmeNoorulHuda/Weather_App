@@ -157,7 +157,7 @@ Below are screenshots showcasing different features and UI states of the app:
 
 *After uploading your demo video to LinkedIn, replace the link below.*
 
-[🔗 Watch Demo on LinkedIn](YOUR_LINKEDIN_VIDEO_URL_HERE)
+[🔗 Watch Demo on LinkedIn](https://www.linkedin.com/posts/noor-ul-huda19_flutter-dart-appdevelopment-activity-7351238883302326273-HJBr?utm_source=share&utm_medium=member_android&rcm=ACoAADPbO1UBX_Q9ScUgZgE4SmH6DYuAsFsH6As)
 
 ---
 
